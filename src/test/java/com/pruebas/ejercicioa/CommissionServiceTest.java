@@ -17,18 +17,18 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-@DisplayName("InterestCalculatorService — Unit Tests")
-class InterestCalculatorServiceTest {
+@DisplayName("CommissionService — Unit Tests + Mockito")
+class CommissionServiceTest {
 
     @Mock
-    private LoanRepository repository;
+    private CommissionRepository repository;
 
-    private InterestCalculatorService service;
+    private CommissionService service;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new InterestCalculatorService(repository);
+        service = new CommissionService(repository);
     }
 
     @Nested
@@ -36,85 +36,85 @@ class InterestCalculatorServiceTest {
     class TierTests {
 
         @Test
-        @DisplayName("Zero principal returns 0.00 interest")
-        void zeroPrincipalReturnsZero() {
-            assertThat(service.calculateInterest(new BigDecimal("0")))
+        @DisplayName("Zero amount returns 0.00 commission")
+        void zeroAmountReturnsZero() {
+            assertThat(service.calculateCommission(new BigDecimal("0")))
                     .isEqualByComparingTo("0.00");
         }
 
         @Test
         @DisplayName("250 is within tier 1 (3%) -> 7.50")
         void midTier1AppliesThreePercent() {
-            assertThat(service.calculateInterest(new BigDecimal("250")))
+            assertThat(service.calculateCommission(new BigDecimal("250")))
                     .isEqualByComparingTo("7.50");
         }
 
         @Test
         @DisplayName("500 is the upper boundary of tier 1 -> 15.00")
         void tier1UpperBoundaryAppliesThreePercent() {
-            assertThat(service.calculateInterest(new BigDecimal("500")))
+            assertThat(service.calculateCommission(new BigDecimal("500")))
                     .isEqualByComparingTo("15.00");
         }
 
         @Test
         @DisplayName("500.01 falls into tier 2 (2%)")
         void tier2LowerBoundaryAppliesTwoPercent() {
-            BigDecimal principal = new BigDecimal("500.01");
-            BigDecimal expected = new BigDecimal("500.01").multiply(new BigDecimal("0.020"))
+            BigDecimal amount = new BigDecimal("500.01");
+            BigDecimal expected = amount.multiply(new BigDecimal("0.020"))
                     .setScale(2, java.math.RoundingMode.HALF_UP);
-            assertThat(service.calculateInterest(principal)).isEqualByComparingTo(expected);
+            assertThat(service.calculateCommission(amount)).isEqualByComparingTo(expected);
         }
 
         @Test
         @DisplayName("2750 is within tier 2 (2%) -> 55.00")
         void midTier2AppliesTwoPercent() {
-            assertThat(service.calculateInterest(new BigDecimal("2750")))
+            assertThat(service.calculateCommission(new BigDecimal("2750")))
                     .isEqualByComparingTo("55.00");
         }
 
         @Test
         @DisplayName("5000 is the upper boundary of tier 2 -> 100.00")
         void tier2UpperBoundaryAppliesTwoPercent() {
-            assertThat(service.calculateInterest(new BigDecimal("5000")))
+            assertThat(service.calculateCommission(new BigDecimal("5000")))
                     .isEqualByComparingTo("100.00");
         }
 
         @Test
         @DisplayName("5000.01 falls into tier 3 (1.5%)")
         void tier3LowerBoundaryAppliesOnePointFivePercent() {
-            BigDecimal principal = new BigDecimal("5000.01");
-            BigDecimal expected = principal.multiply(new BigDecimal("0.015"))
+            BigDecimal amount = new BigDecimal("5000.01");
+            BigDecimal expected = amount.multiply(new BigDecimal("0.015"))
                     .setScale(2, java.math.RoundingMode.HALF_UP);
-            assertThat(service.calculateInterest(principal)).isEqualByComparingTo(expected);
+            assertThat(service.calculateCommission(amount)).isEqualByComparingTo(expected);
         }
 
         @Test
         @DisplayName("12500 is within tier 3 (1.5%) -> 187.50")
         void midTier3AppliesOnePointFivePercent() {
-            assertThat(service.calculateInterest(new BigDecimal("12500")))
+            assertThat(service.calculateCommission(new BigDecimal("12500")))
                     .isEqualByComparingTo("187.50");
         }
 
         @Test
         @DisplayName("20000 is the upper boundary of tier 3 -> 300.00")
         void tier3UpperBoundaryAppliesOnePointFivePercent() {
-            assertThat(service.calculateInterest(new BigDecimal("20000")))
+            assertThat(service.calculateCommission(new BigDecimal("20000")))
                     .isEqualByComparingTo("300.00");
         }
 
         @Test
         @DisplayName("20000.01 falls into tier 4 (1%)")
         void tier4LowerBoundaryAppliesOnePercent() {
-            BigDecimal principal = new BigDecimal("20000.01");
-            BigDecimal expected = principal.multiply(new BigDecimal("0.010"))
+            BigDecimal amount = new BigDecimal("20000.01");
+            BigDecimal expected = amount.multiply(new BigDecimal("0.010"))
                     .setScale(2, java.math.RoundingMode.HALF_UP);
-            assertThat(service.calculateInterest(principal)).isEqualByComparingTo(expected);
+            assertThat(service.calculateCommission(amount)).isEqualByComparingTo(expected);
         }
 
         @Test
         @DisplayName("100000 is in tier 4 (1%) -> 1000.00")
-        void largeLoanAppliesOnePercent() {
-            assertThat(service.calculateInterest(new BigDecimal("100000")))
+        void largeAmountAppliesOnePercent() {
+            assertThat(service.calculateCommission(new BigDecimal("100000")))
                     .isEqualByComparingTo("1000.00");
         }
     }
@@ -123,7 +123,7 @@ class InterestCalculatorServiceTest {
     @DisplayName("Rounding tests (HALF_UP, 2 decimal places)")
     class RoundingTests {
 
-        @ParameterizedTest(name = "principal={0} expects interest={1}")
+        @ParameterizedTest(name = "amount={0} expects commission={1}")
         @CsvSource({
             "333.34, 10.00",
             "166.67, 5.00",
@@ -131,10 +131,10 @@ class InterestCalculatorServiceTest {
             "1666.67, 33.33",
             "8333.34, 125.00"
         })
-        @DisplayName("Interest rounds HALF_UP to exactly 2 decimal places")
-        void interestRoundsHalfUp(String principal, String expectedInterest) {
-            assertThat(service.calculateInterest(new BigDecimal(principal.trim())))
-                    .isEqualByComparingTo(new BigDecimal(expectedInterest.trim()));
+        @DisplayName("Commission rounds HALF_UP to exactly 2 decimal places")
+        void commissionRoundsHalfUp(String amount, String expectedCommission) {
+            assertThat(service.calculateCommission(new BigDecimal(amount.trim())))
+                    .isEqualByComparingTo(new BigDecimal(expectedCommission.trim()));
         }
     }
 
@@ -143,17 +143,17 @@ class InterestCalculatorServiceTest {
     class ValidationTests {
 
         @Test
-        @DisplayName("Null principal throws IllegalArgumentException")
-        void nullPrincipalThrows() {
-            assertThatThrownBy(() -> service.calculateInterest(null))
+        @DisplayName("Null amount throws IllegalArgumentException")
+        void nullAmountThrows() {
+            assertThatThrownBy(() -> service.calculateCommission(null))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("null");
         }
 
         @Test
-        @DisplayName("Negative principal throws IllegalArgumentException")
-        void negativePrincipalThrows() {
-            assertThatThrownBy(() -> service.calculateInterest(new BigDecimal("-0.01")))
+        @DisplayName("Negative amount throws IllegalArgumentException")
+        void negativeAmountThrows() {
+            assertThatThrownBy(() -> service.calculateCommission(new BigDecimal("-0.01")))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("negative");
         }
@@ -170,28 +170,28 @@ class InterestCalculatorServiceTest {
 
             service.calculateAndSave(new BigDecimal("1000"));
 
-            verify(repository, times(1)).save(any(LoanRecord.class));
+            verify(repository, times(1)).save(any(Commission.class));
         }
 
         @Test
-        @DisplayName("calculateAndSave persists correct principal and interest")
+        @DisplayName("calculateAndSave persists correct base amount and commission")
         void calculateAndSavePersistsCorrectValues() {
             when(repository.save(any())).thenAnswer(inv -> inv.getArgument(0));
-            ArgumentCaptor<LoanRecord> captor = ArgumentCaptor.forClass(LoanRecord.class);
+            ArgumentCaptor<Commission> captor = ArgumentCaptor.forClass(Commission.class);
 
             service.calculateAndSave(new BigDecimal("1000"));
 
             verify(repository).save(captor.capture());
-            LoanRecord captured = captor.getValue();
-            assertThat(captured.getPrincipal()).isEqualByComparingTo("1000");
-            assertThat(captured.getInterestAmount()).isEqualByComparingTo("20.00");
+            Commission captured = captor.getValue();
+            assertThat(captured.getBaseAmount()).isEqualByComparingTo("1000");
+            assertThat(captured.getCommissionAmount()).isEqualByComparingTo("20.00");
             assertThat(captured.getCalculatedAt()).isNotNull();
         }
 
         @Test
-        @DisplayName("calculateInterest does not touch the repository")
+        @DisplayName("calculateCommission does not touch the repository")
         void pureCalculationDoesNotInteractWithRepository() {
-            service.calculateInterest(new BigDecimal("500"));
+            service.calculateCommission(new BigDecimal("500"));
             verifyNoInteractions(repository);
         }
 

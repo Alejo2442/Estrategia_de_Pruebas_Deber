@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "invoices")
-public class Invoice {
+@Table(name = "transactions")
+public class Transaction {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,11 +23,11 @@ public class Invoice {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private InvoiceType type;
+    private TransactionType type;
 
-    protected Invoice() {}
+    protected Transaction() {}
 
-    public Invoice(BigDecimal amount, String concept, LocalDateTime issuedAt, InvoiceType type) {
+    public Transaction(BigDecimal amount, String concept, LocalDateTime issuedAt, TransactionType type) {
         this.amount = amount;
         this.concept = concept;
         this.issuedAt = issuedAt;
@@ -38,9 +38,9 @@ public class Invoice {
     public BigDecimal getAmount() { return amount; }
     public String getConcept() { return concept; }
     public LocalDateTime getIssuedAt() { return issuedAt; }
-    public InvoiceType getType() { return type; }
+    public TransactionType getType() { return type; }
 
-    public enum InvoiceType {
+    public enum TransactionType {
         INCOME, EXPENSE
     }
 }

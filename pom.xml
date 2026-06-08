@@ -101,10 +101,10 @@
                 </dependencies>
                 <configuration>
                     <targetClasses>
-                        <param>com.pruebas.ejercicioa.*</param>
+                        <param>com.pruebas.ejercicioa.CommissionService</param>
                     </targetClasses>
                     <targetTests>
-                        <param>com.pruebas.ejercicioa.*</param>
+                        <param>com.pruebas.ejercicioa.CommissionServiceTest</param>
                     </targetTests>
                     <outputFormats>
                         <outputFormat>HTML</outputFormat>
